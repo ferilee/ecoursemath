@@ -84,7 +84,7 @@
             const [aiResponse, setAiResponse] = useState('');
             const [aiPromptType, setAiPromptType] = useState(''); 
 
-            // API Key
+            // API Key (Sudah ditambahkan sesuai request)
             const apiKey = "AIzaSyAS46ALiEZuE6hV3WT5qPu2IEHYZNHJyUU"; 
 
             // --- DATABASE SILABUS (DAFTAR MATERI) ---
@@ -205,16 +205,13 @@
 
             // --- LOGIKA MENDAPATKAN KONTEN ---
             const getCurrentData = () => {
-                // 1. Cek apakah ada konten spesifik di database
                 const levelDB = contentDatabase[selectedLevel];
                 const topicDB = levelDB ? levelDB[selectedTopic] : null;
                 const specificData = topicDB ? topicDB[selectedMajor] : null;
 
-                // 2. Jika ada, gunakan. Jika tidak, GENERATE GENERIC CONTENT (Fallback)
                 if (specificData) {
                     return { ...specificData, themeColor: getThemeColor(selectedMajor), accentColor: getAccentColor(selectedMajor), icon: getIcon(selectedMajor) };
                 } else {
-                    // Fallback Content Generator
                     return {
                         title: selectedTopic || "Materi Matematika",
                         context: `Penerapan di ${selectedMajor}`,
@@ -227,7 +224,6 @@
                 }
             };
 
-            // Helpers for Fallback
             const getThemeColor = (major) => major === 'RPL' ? 'blue' : major === 'TKJ' ? 'emerald' : 'orange';
             const getAccentColor = (major) => major === 'RPL' ? 'from-blue-600 to-indigo-900' : major === 'TKJ' ? 'from-emerald-600 to-teal-900' : 'from-orange-600 to-red-900';
             const getIcon = (major) => major === 'RPL' ? <Terminal className="w-5 h-5"/> : major === 'TKJ' ? <Wifi className="w-5 h-5"/> : <Ruler className="w-5 h-5"/>;
@@ -367,6 +363,7 @@
                                                 <option value="X TKJ B">X TKJ B</option>
                                                 <option value="X DPIB">X DPIB</option>
                                                 <option value="XI RPL">XI RPL</option>
+                                                <option value="XI DPIB">XI DPIB</option>
                                                 <option value="XII TKJ A">XII TKJ A</option>
                                                 <option value="XII TKJ B">XII TKJ B</option>
                                             </select>
