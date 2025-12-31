@@ -3,553 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMKN Pasirian - E-Course Matematika</title>
+    <title>DeltaMath Vokasi - SMKN Pasirian</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Babel untuk JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Import Map untuk React & Icons (Updated for Stability) -->
+    <!-- Import Map untuk React & Lucide -->
     <script type="importmap">
     {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react,react-dom"
-      }
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+        }
     }
     </script>
     
+    <!-- Babel untuk JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
-        /* Custom Scrollbar Hide */
-        .scrollbar-hide::-webkit-scrollbar {
+        /* Custom Styles */
+        body { margin: 0; padding: 0; background-color: #020617; }
+        .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
-        .scrollbar-hide {
+        .hide-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        
-        /* Smooth Animation */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-in {
+        .animate-fadeIn {
             animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans text-slate-800">
-    
-    <!-- Container Aplikasi -->
-    <div id="root" class="min-h-screen flex items-center justify-center">
-        <div class="text-center p-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-            <h2 class="text-xl font-bold text-slate-700">Memuat Aplikasi SMKN Pasirian...</h2>
-            <p class="text-slate-500 text-sm mt-2">Pastikan koneksi internet Anda lancar.</p>
-        </div>
-    </div>
+<body>
+    <div id="root"></div>
 
-    <!-- Error Handler Script -->
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            document.getElementById('root').innerHTML = `
-                <div class="p-8 max-w-md mx-auto bg-white rounded-xl shadow-lg mt-10 text-center border-l-4 border-red-500">
-                    <h3 class="text-red-600 font-bold text-lg mb-2">Terjadi Kesalahan</h3>
-                    <p class="text-slate-600 mb-4">Aplikasi gagal dimuat. Ini biasanya karena masalah koneksi ke server library (CDN) atau konfigurasi browser.</p>
-                    <div class="bg-slate-100 p-3 rounded text-left text-xs font-mono overflow-auto mb-4 text-slate-700">
-                        ${message}
-                    </div>
-                    <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Muat Ulang Halaman</button>
-                </div>
-            `;
-        };
-    </script>
-
-    <!-- React Application Code -->
-    <!-- FIX: Removed 'env' preset to prevent CommonJS 'require' transformation issues in browser -->
-    <script type="text/babel" data-type="module" data-presets="react">
+    <script type="text/babel" data-type="module">
         import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
-            BookOpen, Trophy, Flame, ChevronRight, Wrench, 
-            Monitor, Play, HelpCircle, CheckCircle, ArrowLeft, 
-            MoreHorizontal, PenTool, Layout, Lock, GraduationCap 
+            BookOpen, Compass, Rocket, Repeat, BarChart2, Play, 
+            ChevronRight, Menu, User, Award, Terminal, Wifi, 
+            Ruler, LogIn, Sparkles, X, MessageSquare 
         } from 'lucide-react';
 
         const App = () => {
-            // State Management
-            const [view, setView] = useState('onboarding'); // onboarding, dashboard, lesson
-            const [user, setUser] = useState({ name: '', major: '' });
-            const [activeLessonId, setActiveLessonId] = useState(1); // 1 or 2
-            const [xp, setXp] = useState(1250);
-            const [streak, setStreak] = useState(5);
-            const [showHint, setShowHint] = useState(0); // 0: none, 1: clue, 2: solution
-            const [activeTab, setActiveTab] = useState('konsep'); // konsep, penerapan, kuis
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [userName, setUserName] = useState('');
+            const [userClass, setUserClass] = useState('X RPL 1');
+            
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [selectedMajor, setSelectedMajor] = useState('RPL'); 
+            const [activeDeltaStage, setActiveDeltaStage] = useState('Launch'); 
 
-            // Database Materi Lengkap (Bab 1 & Bab 2)
-            const lessonsDatabase = {
-                1: {
-                    id: 1,
-                    title: "Bilangan Berpangkat",
-                    subtitle: "Eksponen & Notasi Ilmiah",
-                    videoDuration: "04:15",
-                    generalExplanation: "Eksponen adalah cara penulisan ringkas untuk perkalian berulang. a^n artinya mengalikan bilangan 'a' sebanyak 'n' kali.",
-                    contextualContent: {
-                        "TKJ": {
-                            icon: <Monitor className="w-5 h-5" />,
-                            title: "Addressing & Binary",
-                            desc: "Dalam jaringan (Subnetting), jumlah host dihitung dengan rumus 2ⁿ - 2. Kapasitas bandwidth juga menggunakan basis eksponen.",
-                            example: "IP Address IPv4 = 32 bit (2³² kemungkinan)"
-                        },
-                        "RPL": {
-                            icon: <Monitor className="w-5 h-5" />,
-                            title: "Kompleksitas & Memori",
-                            desc: "Programmer menggunakan eksponen untuk menghitung kompleksitas algoritma (Big-O) dan alokasi memori tipe data.",
-                            example: "Tipe data Integer 32-bit = Range -2³¹ s.d 2³¹-1"
-                        },
-                        "DPIB": {
-                            icon: <PenTool className="w-5 h-5" />,
-                            title: "Skala & Volume",
-                            desc: "Dalam AutoCAD/Revit, konversi satuan luas dan volume menggunakan eksponen pangkat 2 (luas) dan 3 (volume).",
-                            example: "1 m³ (beton) = 10⁶ cm³. Bukan 100!"
-                        }
-                    },
-                    quiz: {
-                        question: "Sederhanakan bentuk berikut: 2³ × 2⁴ = ...",
-                        options: ["2^7", "2^12", "4^7", "4^12"],
-                        correct: "2^7",
-                        correctFeedback: "Benar! (3+4 = 7)",
-                        hint1: "Jika bilangan pokoknya sama (sama-sama 2), pangkatnya cukup dijumlahkan.",
-                        hint2: "2⁽³⁺⁴⁾ = 2⁷."
-                    }
+            // AI States
+            const [showAIModal, setShowAIModal] = useState(false);
+            const [aiLoading, setAiLoading] = useState(false);
+            const [aiResponse, setAiResponse] = useState('');
+            const [aiPromptType, setAiPromptType] = useState(''); // 'concept' or 'project'
+
+            // API Key (Environment or User Input for security in public deploy)
+            // Note: For production, use backend proxy. For demo, leaving empty string.
+            const apiKey = ""; 
+
+            // Data Jurusan & Konten
+            const majorData = {
+                RPL: {
+                    themeColor: 'blue',
+                    accentColor: 'from-blue-600 to-indigo-900',
+                    icon: <Terminal className="w-5 h-5" />,
+                    heroTitle: "Logika Algoritma",
+                    context: "Pemrograman Game",
+                    launchTask: "Buat logika collision detection menggunakan operasi matriks.",
+                    progress: 65,
+                    heroImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800"
                 },
-                2: {
-                    id: 2,
-                    title: "SPLDV",
-                    subtitle: "Persamaan Linear Dua Variabel",
-                    videoDuration: "06:30",
-                    generalExplanation: "SPLDV adalah sistem persamaan matematika yang terdiri atas dua persamaan linear (garis lurus) yang memiliki dua variabel, biasanya x dan y. Tujuannya mencari titik temu.",
-                    contextualContent: {
-                        "TKJ": {
-                            icon: <Monitor className="w-5 h-5" />,
-                            title: "Manajemen Bandwidth",
-                            desc: "Menentukan batas download/upload user. Jika Total Bandwidth 100Mbps dibagi untuk User Premium (x) dan Regular (y).",
-                            example: "3x + 2y = 100 Mbps (Persamaan 1)"
-                        },
-                        "RPL": {
-                            icon: <Monitor className="w-5 h-5" />,
-                            title: "Logika Variabel",
-                            desc: "Dalam coding, kita sering mencari nilai variabel yang memenuhi dua kondisi (Constraint Programming).",
-                            example: "if (a + b == 10 && a - b == 2) { return a; }"
-                        },
-                        "DPIB": {
-                            icon: <PenTool className="w-5 h-5" />,
-                            title: "Keseimbangan Gaya",
-                            desc: "Menghitung reaksi tumpuan jembatan. Sigma Gaya Vertikal = 0 dan Sigma Momen = 0 menghasilkan dua persamaan linear.",
-                            example: "Ra + Rb = 50kN (Beban Total)"
-                        }
-                    },
-                    quiz: {
-                        question: "Himpunan penyelesaian dari x + y = 5 dan x - y = 1 adalah...",
-                        options: ["{3, 2}", "{2, 3}", "{4, 1}", "{5, 0}"],
-                        correct: "{3, 2}",
-                        correctFeedback: "Tepat! 3+2=5 dan 3-2=1",
-                        hint1: "Gunakan metode eliminasi. Jumlahkan kedua persamaan: (x+y) + (x-y) = 5+1.",
-                        hint2: "2x = 6, maka x = 3. Lalu substitusi x ke salah satu persamaan."
-                    }
+                TKJ: {
+                    themeColor: 'emerald',
+                    accentColor: 'from-emerald-600 to-teal-900',
+                    icon: <Wifi className="w-5 h-5" />,
+                    heroTitle: "Statistika Jaringan",
+                    context: "Analisis Bandwidth",
+                    launchTask: "Hitung Mean dan deviasi standar throughput server untuk optimasi QoS.",
+                    progress: 40,
+                    heroImage: "https://images.unsplash.com/photo-1558494949-ef526b0042a0?auto=format&fit=crop&q=80&w=800"
+                },
+                DPIB: {
+                    themeColor: 'orange',
+                    accentColor: 'from-orange-600 to-red-900',
+                    icon: <Ruler className="w-5 h-5" />,
+                    heroTitle: "Trigonometri",
+                    context: "Konstruksi Atap",
+                    launchTask: "Hitung sudut kemiringan kuda-kuda dan panjang batang diagonal.",
+                    progress: 20,
+                    heroImage: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800"
                 }
             };
 
-            // --- Components ---
+            const currentData = majorData[selectedMajor];
 
-            const Onboarding = () => (
-                <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-900 text-white space-y-8 animate-in w-full">
-                    <div className="text-center space-y-2">
-                        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/50 mb-4">
-                            <BookOpen className="w-8 h-8 text-white" />
-                        </div>
-                        <h1 className="text-2xl font-bold tracking-tight">SMKN PASIRIAN</h1>
-                        <div className="bg-slate-800 px-3 py-1.5 rounded-full inline-block border border-slate-700">
-                            <p className="text-slate-300 text-xs font-medium">Guru: Feri Dwi Hermawan, S.Pd.</p>
-                        </div>
-                        <p className="text-slate-400 text-sm mt-2">Platform Belajar Matematika Adaptif</p>
-                    </div>
+            const deltaStages = [
+                { id: 'Discover', title: '1. Discover', subtitle: 'Investigasi Masalah', icon: <BookOpen className="w-4 h-4" /> },
+                { id: 'Explore', title: '2. Explore', subtitle: 'Eksperimen Konsep', icon: <Compass className="w-4 h-4" /> },
+                { id: 'Launch', title: '3. Launch', subtitle: 'Misi Utama', icon: <Rocket className="w-4 h-4" /> },
+                { id: 'Transform', title: '4. Transform', subtitle: 'Refleksi Diri', icon: <Repeat className="w-4 h-4" /> },
+                { id: 'Assess', title: '5. Assess', subtitle: 'Uji Kompetensi', icon: <BarChart2 className="w-4 h-4" /> },
+            ];
 
-                    <div className="w-full max-w-xs space-y-4">
-                        <div>
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Nama Siswa</label>
-                            <input 
-                                type="text" 
-                                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
-                                placeholder="Ketik namamu..."
-                                value={user.name}
-                                onChange={(e) => setUser({...user, name: e.target.value})}
-                            />
-                        </div>
+            // --- GEMINI API FUNCTION ---
+            const callGeminiAPI = async (type) => {
+                setAiLoading(true);
+                setAiResponse('');
+                setAiPromptType(type);
+                setShowAIModal(true);
 
-                        <div>
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Pilih Jurusan</label>
-                            <div className="grid grid-cols-1 gap-2 mt-1">
-                                {["TKJ", "RPL", "DPIB"].map((major) => (
-                                    <button
-                                        key={major}
-                                        onClick={() => setUser({...user, major: major})}
-                                        className={`flex items-center p-3 rounded-xl border transition-all ${user.major === major ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
-                                    >
-                                        {major === "TKJ" && <Monitor className="w-4 h-4 mr-3" />}
-                                        {major === "RPL" && <Monitor className="w-4 h-4 mr-3" />}
-                                        {major === "DPIB" && <PenTool className="w-4 h-4 mr-3" />}
-                                        <span className="text-sm font-medium">{major}</span>
-                                        {user.major === major && <CheckCircle className="w-4 h-4 ml-auto" />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                // Validation for Demo
+                if (!apiKey) {
+                    setAiResponse("⚠️ API Key belum diatur dalam kode. Untuk demo, silakan hubungi Pak Feri atau masukkan API Key Anda sendiri di source code.");
+                    setAiLoading(false);
+                    return;
+                }
 
-                    <button 
-                        disabled={!user.name || !user.major}
-                        onClick={() => setView('dashboard')}
-                        className="w-full max-w-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
-                    >
-                        Mulai E-Course
-                    </button>
-                </div>
-            );
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-            const Dashboard = () => (
-                <div className="h-full bg-slate-50 flex flex-col overflow-hidden animate-in w-full">
-                    {/* Header */}
-                    <div className="bg-white px-6 pt-10 pb-6 rounded-b-3xl shadow-sm z-10">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Guru: Feri Dwi Hermawan, S.Pd.</p>
-                                <h2 className="text-2xl font-bold text-slate-800 mt-1">{user.name || "Siswa"}</h2>
-                                <div className="inline-flex items-center mt-2 bg-blue-50 px-3 py-1 rounded-full text-xs font-medium text-blue-600 border border-blue-100">
-                                    {user.major === "TKJ" && <Monitor className="w-3 h-3 mr-1.5" />}
-                                    {user.major === "RPL" && <Monitor className="w-3 h-3 mr-1.5" />}
-                                    {user.major === "DPIB" && <PenTool className="w-3 h-3 mr-1.5" />}
-                                    Jurusan {user.major}
-                                </div>
-                            </div>
-                            <div className="w-12 h-12 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md">
-                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="avatar" />
-                            </div>
-                        </div>
+                let prompt = "";
+                if (type === 'concept') {
+                    prompt = `Sebagai guru matematika SMK yang asik, jelaskan konsep "${currentData.heroTitle}" dalam konteks jurusan ${selectedMajor} (${currentData.context}) secara singkat, padat, dan memotivasi. Gunakan bahasa gaul yang sopan agar siswa tertarik.`;
+                } else if (type === 'project') {
+                    prompt = `Saya siswa jurusan ${selectedMajor}. Tugas saya adalah: "${currentData.launchTask}". Berikan 3 langkah panduan praktis (step-by-step) untuk menyelesaikan tugas ini menggunakan matematika. Jika ada rumus, tuliskan rumusnya. Jangan berikan jawaban langsung, tapi berikan "hint" atau petunjuk cara mengerjakannya.`;
+                }
 
-                        {/* Gamification Stats */}
-                        <div className="flex space-x-3">
-                            <div className="flex-1 bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-between shadow-lg shadow-slate-200">
-                                <div className="flex items-center space-x-2">
-                                    <div className="p-1.5 bg-yellow-500/20 rounded-lg">
-                                        <Trophy className="w-4 h-4 text-yellow-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Total XP</p>
-                                        <p className="text-sm font-bold">{xp}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-1 bg-white border border-slate-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
-                                <div className="flex items-center space-x-2">
-                                    <div className="p-1.5 bg-orange-100 rounded-lg">
-                                        <Flame className="w-4 h-4 text-orange-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Streak</p>
-                                        <p className="text-sm font-bold text-slate-800">{streak} Hari</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }]
+                        })
+                    });
 
-                    {/* Content Scroll */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                        
-                        {/* Course List */}
-                        <section>
-                            <div className="flex justify-between items-end mb-3">
-                                <h3 className="font-bold text-slate-800">Daftar Bab</h3>
-                                <button className="text-xs text-blue-600 font-semibold">Semester 1</button>
-                            </div>
-                            
-                            <div className="space-y-4">
-                                {/* Card Bab 1 */}
-                                <div 
-                                    onClick={() => { setActiveLessonId(1); setView('lesson'); setActiveTab('konsep'); }}
-                                    className="group relative h-36 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white overflow-hidden shadow-lg shadow-blue-200 cursor-pointer transition-transform active:scale-95"
-                                >
-                                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                                        <BookOpen className="w-20 h-20 transform rotate-12" />
-                                    </div>
-                                    <div className="relative z-10 flex flex-col h-full justify-between">
-                                        <div>
-                                            <span className="bg-white/20 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide">Bab 1</span>
-                                            <h4 className="text-lg font-bold mt-1">Bilangan Berpangkat</h4>
-                                            <p className="text-blue-100 text-xs">Eksponen & Akar</p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <div className="flex-1 h-1 bg-black/20 rounded-full">
-                                                <div className="h-full bg-yellow-400 w-full rounded-full"></div>
-                                            </div>
-                                            <CheckCircle className="w-4 h-4 text-yellow-400" />
-                                        </div>
-                                    </div>
-                                </div>
+                    const data = await response.json();
+                    if (data.candidates && data.candidates[0].content) {
+                        setAiResponse(data.candidates[0].content.parts[0].text);
+                    } else if (data.error) {
+                         setAiResponse(`Error: ${data.error.message}`);
+                    } else {
+                        setAiResponse("Maaf, Guru AI sedang sibuk. Coba lagi nanti ya!");
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini:", error);
+                    setAiResponse("Terjadi kesalahan koneksi. Periksa internetmu.");
+                } finally {
+                    setAiLoading(false);
+                }
+            };
 
-                                {/* Card Bab 2 */}
-                                <div 
-                                    onClick={() => { setActiveLessonId(2); setView('lesson'); setActiveTab('konsep'); }}
-                                    className="group relative h-36 bg-white border border-slate-200 rounded-2xl p-5 overflow-hidden shadow-sm cursor-pointer transition-all hover:border-blue-300 hover:shadow-md active:scale-95"
-                                >
-                                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                                        <Layout className="w-20 h-20 transform -rotate-12 text-slate-800" />
-                                    </div>
-                                    <div className="relative z-10 flex flex-col h-full justify-between">
-                                        <div>
-                                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide">Bab 2</span>
-                                            <h4 className="text-lg font-bold mt-1 text-slate-800">Sistem Persamaan (SPLDV)</h4>
-                                            <p className="text-slate-500 text-xs">Metode Gabungan & Grafik</p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <div className="flex-1 h-1 bg-slate-100 rounded-full">
-                                                <div className="h-full bg-blue-500 w-1/4 rounded-full"></div>
-                                            </div>
-                                            <span className="text-xs font-bold text-slate-400">25%</span>
-                                        </div>
-                                    </div>
-                                    {/* Play Button Overlay */}
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
-                                        <div className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center scale-0 group-hover:scale-100 transition-transform">
-                                            <Play className="w-4 h-4 ml-0.5 text-blue-600 fill-blue-600" />
-                                        </div>
-                                    </div>
-                                </div>
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (userName.trim()) {
+                    if (userClass.includes('RPL')) setSelectedMajor('RPL');
+                    else if (userClass.includes('TKJ')) setSelectedMajor('TKJ');
+                    else if (userClass.includes('DPIB')) setSelectedMajor('DPIB');
+                    else setSelectedMajor('RPL'); 
+                    setIsLoggedIn(true);
+                }
+            };
 
-                                {/* Card Bab 3 Locked */}
-                                <div className="relative h-20 bg-slate-100 rounded-xl p-4 flex items-center justify-between opacity-70">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center">
-                                            <Lock className="w-5 h-5 text-slate-400" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-slate-500 text-sm">Barisan & Deret</h4>
-                                            <p className="text-xs text-slate-400">Terkunci</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                </div>
-            );
-
-            const Lesson = () => {
-                const [contextView, setContextView] = useState(user.major);
-                const currentLesson = lessonsDatabase[activeLessonId];
-                
-                // Safety check
-                if (!currentLesson) return <div>Materi tidak ditemukan</div>;
-
-                // Fallback content logic
-                const content = currentLesson.contextualContent[contextView] || currentLesson.contextualContent["TKJ"];
-                const [quizAnswer, setQuizAnswer] = useState(null);
-
+            // --- LOGIN SCREEN ---
+            if (!isLoggedIn) {
                 return (
-                    <div className="h-full flex flex-col bg-white animate-in w-full">
-                        {/* Nav */}
-                        <div className="px-4 py-4 flex items-center border-b border-slate-100">
-                            <button onClick={() => setView('dashboard')} className="p-2 hover:bg-slate-50 rounded-full">
-                                <ArrowLeft className="w-5 h-5 text-slate-600" />
-                            </button>
-                            <div className="flex-1 text-center">
-                                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Bab {currentLesson.id}: {currentLesson.title}</h2>
-                            </div>
-                            <button className="p-2 hover:bg-slate-50 rounded-full">
-                                <MoreHorizontal className="w-5 h-5 text-slate-600" />
-                            </button>
-                        </div>
+                    <div className="min-h-screen bg-slate-950 text-white font-sans max-w-md mx-auto relative overflow-hidden flex flex-col justify-center p-6 border-x border-slate-900">
+                        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-600 rounded-full blur-[80px] opacity-40"></div>
+                        <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-blue-600 rounded-full blur-[80px] opacity-40"></div>
 
-                        {/* Video Area (Mockup) */}
-                        <div className="w-full aspect-video bg-slate-900 relative flex items-center justify-center group">
+                        <div className="relative z-10 space-y-8">
                             <div className="text-center space-y-2">
-                                <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-full flex items-center justify-center mx-auto cursor-pointer hover:scale-110 transition-transform">
-                                    <Play className="w-6 h-6 ml-1 text-white fill-white" />
+                                <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4 transform rotate-3">
+                                    <span className="text-3xl font-bold">Δ</span>
                                 </div>
-                                <p className="text-slate-400 text-xs font-medium">Video Materi ({currentLesson.videoDuration})</p>
-                                <p className="text-slate-500 text-[10px]">Oleh: Feri Dwi Hermawan, S.Pd.</p>
+                                <h1 className="text-3xl font-bold tracking-tight">DeltaMath <span className="text-blue-400">Vokasi</span></h1>
+                                <p className="text-slate-400 text-sm">Platform Belajar Matematika Terpersonalisasi</p>
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-800">
-                                <div className="h-full bg-red-600 w-1/4 relative">
-                                    <div className="absolute right-0 -top-1 w-3 h-3 bg-red-600 rounded-full shadow"></div>
+
+                            <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
+                                <div className="mb-6 pb-4 border-b border-slate-700/50">
+                                    <p className="text-xs text-slate-400 uppercase tracking-widest text-center mb-1">Guru Pengampu</p>
+                                    <p className="text-md font-medium text-center text-white">Feri Dwi Hermawan, S.Pd.</p>
                                 </div>
-                            </div>
-                        </div>
 
-                        {/* Tabs */}
-                        <div className="flex border-b border-slate-100">
-                            <button 
-                                onClick={() => setActiveTab('konsep')}
-                                className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'konsep' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
-                            >
-                                Konsep
-                            </button>
-                            <button 
-                                onClick={() => setActiveTab('penerapan')}
-                                className={`flex-1 py-3 text-sm font-semibold transition-colors flex justify-center items-center space-x-1 ${activeTab === 'penerapan' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
-                            >
-                                <span>Penerapan</span>
-                                <div className="bg-orange-100 text-orange-600 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Wajib</div>
-                            </button>
-                            <button 
-                                onClick={() => { setActiveTab('kuis'); setShowHint(0); setQuizAnswer(null); }}
-                                className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'kuis' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
-                            >
-                                Kuis
-                            </button>
-                        </div>
-
-                        {/* Content Body */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <h1 className="text-xl font-bold text-slate-800 mb-1">{currentLesson.title}</h1>
-                            <p className="text-slate-500 text-sm mb-6">{currentLesson.subtitle}</p>
-
-                            {activeTab === 'konsep' && (
-                                <div className="space-y-4 animate-in">
-                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-900 text-sm leading-relaxed">
-                                        {currentLesson.generalExplanation}
-                                    </div>
-                                    <div className="prose prose-sm text-slate-600 space-y-2">
-                                        <p>Poin Kunci:</p>
-                                        {activeLessonId === 1 ? (
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                <li><strong>Perkalian:</strong> aᵐ x aⁿ = aᵐ⁺ⁿ</li>
-                                                <li><strong>Pembagian:</strong> aᵐ / aⁿ = aᵐ⁻ⁿ</li>
-                                                <li><strong>Pangkat dipangkatkan:</strong> (aᵐ)ⁿ = aᵐ⁻ⁿ</li>
-                                            </ul>
-                                        ) : (
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                <li><strong>Variabel:</strong> Nilai yang belum diketahui (x, y).</li>
-                                                <li><strong>Metode Eliminasi:</strong> Menghilangkan salah satu variabel.</li>
-                                                <li><strong>Metode Substitusi:</strong> Mengganti variabel dengan persamaan lain.</li>
-                                            </ul>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'penerapan' && (
-                                <div className="space-y-4 animate-in">
-                                    <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-hide">
-                                        {["TKJ", "RPL", "DPIB"].map((m) => (
-                                            <button
-                                                key={m}
-                                                onClick={() => setContextView(m)}
-                                                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${contextView === m ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200'}`}
-                                            >
-                                                {m}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                                        <div className="flex items-center space-x-3 mb-4">
-                                            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                                                {content.icon}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-800 text-sm">{content.title}</h4>
-                                                <p className="text-xs text-slate-500">Studi Kasus: {contextView}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                                            {content.desc}
-                                        </p>
-                                        <div className="bg-slate-900 text-slate-300 p-3 rounded-lg font-mono text-xs">
-                                            {content.example}
-                                        </div>
+                                <form onSubmit={handleLogin} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1 ml-1">Nama Lengkap</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-slate-500"
+                                            placeholder="Ketik namamu..."
+                                            value={userName}
+                                            onChange={(e) => setUserName(e.target.value)}
+                                        />
                                     </div>
                                     
-                                    <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-xl flex space-x-3">
-                                        <HelpCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                                        <p className="text-xs text-yellow-800">
-                                            <strong>Relevansi Profesi:</strong> Materi ini bukan sekadar teori, tapi logika dasar yang dipakai teknisi {contextView} setiap hari.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'kuis' && (
-                                <div className="space-y-4 animate-in">
-                                    <div className="bg-white border-2 border-slate-100 rounded-xl p-5">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Soal Latihan</span>
-                                        <p className="font-medium text-slate-800 mt-2 mb-4">
-                                            {currentLesson.quiz.question}
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {currentLesson.quiz.options.map((ans) => (
-                                                <button 
-                                                    key={ans} 
-                                                    onClick={() => setQuizAnswer(ans)}
-                                                    className={`py-3 rounded-lg border font-bold transition-all ${quizAnswer === ans ? (ans === currentLesson.quiz.correct ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-50 border-red-200 text-red-600') : 'border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-200'}`}
-                                                >
-                                                    {ans}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {quizAnswer && (
-                                            <div className={`mt-3 text-center text-sm font-bold ${quizAnswer === currentLesson.quiz.correct ? "text-green-600" : "text-red-500"}`}>
-                                                {quizAnswer === currentLesson.quiz.correct ? currentLesson.quiz.correctFeedback : "Kurang tepat, coba lagi!"}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="pt-4 border-t border-slate-100">
-                                        <button 
-                                            onClick={() => setShowHint(prev => prev < 2 ? prev + 1 : prev)}
-                                            className="flex items-center justify-center space-x-2 w-full py-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1 ml-1">Kelas / Jurusan</label>
+                                        <select 
+                                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white appearance-none cursor-pointer"
+                                            value={userClass}
+                                            onChange={(e) => setUserClass(e.target.value)}
                                         >
-                                            <HelpCircle className="w-4 h-4" />
-                                            <span>{showHint === 0 ? "Buntu? Minta Bantuan" : showHint === 1 ? "Buka Jawaban Lengkap" : "Bantuan Maksimal Tercapai"}</span>
-                                        </button>
-
-                                        {showHint >= 1 && (
-                                            <div className="mt-3 bg-indigo-50 text-indigo-800 p-3 rounded-lg text-sm animate-in">
-                                                <strong>Hint 1:</strong> {currentLesson.quiz.hint1}
-                                            </div>
-                                        )}
-                                        {showHint >= 2 && (
-                                            <div className="mt-2 bg-green-50 text-green-800 p-3 rounded-lg text-sm animate-in">
-                                                <strong>Jawaban:</strong> {currentLesson.quiz.hint2}
-                                            </div>
-                                        )}
+                                            <option value="X RPL 1">X RPL 1</option>
+                                            <option value="X RPL 2">X RPL 2</option>
+                                            <option value="XI TKJ 1">XI TKJ 1</option>
+                                            <option value="XI TKJ 2">XI TKJ 2</option>
+                                            <option value="XII DPIB 1">XII DPIB 1</option>
+                                            <option value="XII DPIB 2">XII DPIB 2</option>
+                                        </select>
                                     </div>
-                                </div>
-                            )}
-                        </div>
 
-                        <div className="p-4 border-t border-slate-100 bg-white">
-                            <button className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg shadow-slate-300 active:scale-95 transition-transform flex items-center justify-center space-x-2">
-                                <span>Selesai & Lanjut</span>
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
+                                    <button 
+                                        type="submit"
+                                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
+                                    >
+                                        Mulai Belajar <LogIn className="w-4 h-4" />
+                                    </button>
+                                </form>
+                            </div>
+                            <p className="text-center text-xs text-slate-600">SMKN Pasirian • E-Course Platform</p>
                         </div>
                     </div>
                 );
-            };
+            }
 
+            // --- MAIN APP ---
             return (
-                <div className="flex items-center justify-center min-h-screen font-sans">
-                    <div className="w-full max-w-md bg-white min-h-screen shadow-2xl relative">
-                        {view === 'onboarding' && <Onboarding />}
-                        {view === 'dashboard' && <Dashboard />}
-                        {view === 'lesson' && <Lesson />}
+                <div className="min-h-screen bg-slate-950 text-slate-200 font-sans max-w-md mx-auto shadow-2xl overflow-hidden border-x border-slate-900 pb-20 relative">
+                    
+                    {/* NAVBAR */}
+                    <div className="absolute top-0 w-full z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+                        <div className="flex items-center gap-2">
+                            <span className={`text-${currentData.themeColor}-500 font-bold text-xl drop-shadow-md`}>Δ</span>
+                            <span className="font-bold text-sm tracking-wide drop-shadow-md text-white">DeltaMath</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-xs text-slate-200 font-bold drop-shadow-sm">{userName}</p>
+                                <p className="text-[10px] text-slate-300 drop-shadow-sm">{userClass}</p>
+                            </div>
+                            <div className="w-8 h-8 rounded-md bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                                <User className="w-4 h-4 text-white" />
+                            </div>
+                        </div>
                     </div>
+
+                    {/* HERO SECTION */}
+                    <div className="relative w-full h-[500px] overflow-hidden group">
+                        <img 
+                            src={currentData.heroImage} 
+                            alt={selectedMajor}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                        />
+                        <div className={`absolute inset-0 bg-gradient-to-br ${currentData.accentColor} opacity-40 mix-blend-multiply`}></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-transparent"></div>
+                        
+                        <div className="absolute bottom-0 w-full p-6 pb-8 space-y-4">
+                            <div className="animate-fadeIn">
+                                <p className="text-lg text-slate-200 font-medium drop-shadow-md">
+                                    Hai, <span className="font-bold text-white">{userName}</span>! 👋
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2 py-0.5 bg-${currentData.themeColor}-600/80 backdrop-blur-sm border border-${currentData.themeColor}-400/50 rounded text-[10px] font-bold text-white uppercase shadow-lg`}>
+                                    Materi Minggu Ini
+                                </span>
+                                <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded text-[10px] text-white border border-white/30 font-semibold">
+                                    {selectedMajor} Series
+                                </span>
+                            </div>
+                            
+                            <h1 className="text-4xl font-extrabold text-white leading-tight drop-shadow-2xl">
+                                {currentData.heroTitle}
+                            </h1>
+                            
+                            <p className="text-sm text-slate-200 line-clamp-2 max-w-[90%] drop-shadow-lg font-medium leading-relaxed">
+                                {currentData.context}: {currentData.launchTask}
+                            </p>
+
+                            <div className="flex items-center gap-2 py-1">
+                                <div className="w-5 h-5 rounded-full bg-slate-700 border border-slate-500 flex items-center justify-center overflow-hidden">
+                                    <User className="w-3 h-3 text-slate-300" /> 
+                                </div>
+                                <p className="text-xs text-slate-300 font-medium">
+                                    Guru Pengampu: <span className="text-white">Feri Dwi Hermawan, S.Pd.</span>
+                                </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 pt-2">
+                                <button className="flex-1 bg-white text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors shadow-xl shadow-black/20">
+                                    <Play className="w-5 h-5 fill-black" />
+                                    Lanjut Belajar
+                                </button>
+                                {/* AI BUTTON: Jelaskan Konsep */}
+                                <button 
+                                    onClick={() => callGeminiAPI('concept')}
+                                    className="flex-none bg-slate-800/60 backdrop-blur-md text-white p-3 px-4 rounded-lg border border-slate-500/50 hover:bg-indigo-600 hover:border-indigo-400 transition-all group flex flex-col items-center justify-center"
+                                >
+                                    <Sparkles className="w-5 h-5 text-yellow-400 mb-0.5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* HORIZONTAL SCROLL (DELTA Stages) */}
+                    <div className="px-4 mt-4">
+                        <h3 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
+                            Tahapan DELTA <span className="text-xs font-normal text-slate-500 ml-auto">Geser →</span>
+                        </h3>
+                        
+                        <div className="flex overflow-x-auto gap-4 pb-8 -mx-4 px-4 snap-x hide-scrollbar">
+                            {deltaStages.map((stage, index) => {
+                                const isActive = activeDeltaStage === stage.id;
+                                return (
+                                    <div 
+                                        key={stage.id}
+                                        onClick={() => setActiveDeltaStage(stage.id)}
+                                        className={`snap-center flex-none w-40 relative group cursor-pointer transition-all duration-300
+                                            ${isActive ? 'scale-105' : 'opacity-80 hover:opacity-100'}
+                                        `}
+                                    >
+                                        <div className={`
+                                            h-56 rounded-lg overflow-hidden relative border-2 transition-all
+                                            ${isActive 
+                                                ? `border-${currentData.themeColor}-500 shadow-lg shadow-${currentData.themeColor}-900/50` 
+                                                : 'border-slate-800 bg-slate-900'}
+                                        `}>
+                                            <div className={`absolute inset-0 bg-gradient-to-b ${isActive ? `from-${currentData.themeColor}-900/40 to-slate-900` : 'from-slate-800 to-slate-900'}`}></div>
+                                            
+                                            <div className="absolute top-2 right-2 text-5xl font-black text-white/5 z-0">
+                                                {index + 1}
+                                            </div>
+
+                                            <div className="absolute inset-0 p-3 flex flex-col justify-end z-10">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isActive ? `bg-${currentData.themeColor}-500 text-white` : 'bg-slate-800 text-slate-500'}`}>
+                                                    {stage.icon}
+                                                </div>
+                                                <h4 className={`font-bold text-sm leading-tight mb-1 ${isActive ? 'text-white' : 'text-slate-300'}`}>
+                                                    {stage.title}
+                                                </h4>
+                                                <p className="text-[10px] text-slate-400 line-clamp-2">
+                                                    {stage.subtitle}
+                                                </p>
+
+                                                {isActive && (
+                                                    <div className="w-full h-1 bg-slate-700 rounded-full mt-3 overflow-hidden">
+                                                        <div className={`h-full bg-${currentData.themeColor}-500 w-2/3`}></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {isActive && (
+                                            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
+                                                <div className={`w-2 h-2 rounded-full bg-${currentData.themeColor}-500`}></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* CONTENT DETAIL (Active Stage) */}
+                    <div className="px-4 mb-8">
+                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden">
+                            {/* Decoration */}
+                            <div className={`absolute top-0 right-0 w-24 h-24 bg-${currentData.themeColor}-500/10 rounded-full blur-xl -mr-8 -mt-8 pointer-events-none`}></div>
+
+                            <div className="flex justify-between items-start mb-2">
+                                <h4 className="text-slate-400 text-xs font-bold uppercase">Sedang Dibuka: {activeDeltaStage}</h4>
+                                
+                                {/* AI Badge for Launch Stage */}
+                                {activeDeltaStage === 'Launch' && (
+                                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-900/50 border border-indigo-500/30 text-[10px] text-indigo-300 font-bold animate-pulse">
+                                        <Sparkles className="w-3 h-3" /> AI Powered
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-4 relative z-10">
+                                <div className="flex-1">
+                                    <p className="text-sm text-slate-300 leading-relaxed">
+                                        {activeDeltaStage === 'Launch' 
+                                            ? `Tantangan khusus jurusan ${selectedMajor}: ${currentData.launchTask} Gunakan pemahamanmu dari tahap Explore untuk menyelesaikan masalah ini.`
+                                            : "Selesaikan aktivitas di tahap ini untuk membuka materi selanjutnya. Tonton video pengantar dan catat poin penting."}
+                                    </p>
+                                </div>
+
+                                {/* ACTION BUTTONS */}
+                                <div className="flex gap-2 mt-2">
+                                    <button className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-${currentData.themeColor}-600 hover:bg-${currentData.themeColor}-500 text-white flex items-center justify-center gap-2 transition-colors`}>
+                                        Mulai Aktivitas <ChevronRight className="w-3 h-3" />
+                                    </button>
+                                    
+                                    {/* AI Button: Specific for Launch (Project Help) */}
+                                    {activeDeltaStage === 'Launch' && (
+                                        <button 
+                                            onClick={() => callGeminiAPI('project')}
+                                            className="py-2 px-3 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-1 border border-indigo-400 shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                                        >
+                                            <Sparkles className="w-3 h-3" /> Tanya AI
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* AI MODAL POPUP */}
+                    {showAIModal && (
+                        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 py-6 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                            <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
+                                {/* Modal Header */}
+                                <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-indigo-600 rounded-lg">
+                                            <Sparkles className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-white">
+                                                {aiPromptType === 'concept' ? 'Guru AI: Penjelasan Konsep' : 'Mentor AI: Panduan Proyek'}
+                                            </h3>
+                                            <p className="text-[10px] text-slate-400">Powered by Gemini AI</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowAIModal(false)} className="p-1.5 hover:bg-slate-800 rounded-full text-slate-400">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="p-5 overflow-y-auto">
+                                    {aiLoading ? (
+                                        <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                                            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <p className="text-xs text-indigo-300 animate-pulse">Sedang memikirkan jawaban terbaik...</p>
+                                        </div>
+                                    ) : (
+                                        <div className="prose prose-invert prose-sm max-w-none">
+                                            <div className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">
+                                                {aiResponse}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Modal Footer */}
+                                {!aiLoading && (
+                                    <div className="p-3 border-t border-slate-800 bg-slate-900/50 flex justify-end">
+                                        <button 
+                                            onClick={() => setShowAIModal(false)}
+                                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 rounded-lg transition-colors"
+                                        >
+                                            Tutup
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* BOTTOM NAV */}
+                    <nav className="fixed bottom-0 w-full max-w-md bg-[#121212] border-t border-slate-800/50 p-2 pb-4 z-40">
+                        <div className="flex justify-around items-center">
+                            <button className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-600'}`} onClick={() => setActiveTab('dashboard')}>
+                                <Menu className="w-5 h-5" />
+                                <span className="text-[9px] font-medium">Beranda</span>
+                            </button>
+                            <button className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'search' ? 'text-white' : 'text-slate-600'}`} onClick={() => setActiveTab('search')}>
+                                <Play className="w-5 h-5" />
+                                <span className="text-[9px] font-medium">Video</span>
+                            </button>
+                            <button className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'chat' ? 'text-indigo-400' : 'text-slate-600'}`} onClick={() => callGeminiAPI('concept')}>
+                                <MessageSquare className="w-5 h-5" />
+                                <span className="text-[9px] font-medium">Tanya AI</span>
+                            </button>
+                            <button className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'downloads' ? 'text-white' : 'text-slate-600'}`} onClick={() => setActiveTab('downloads')}>
+                                <Award className="w-5 h-5" />
+                                <span className="text-[9px] font-medium">Prestasi</span>
+                            </button>
+                        </div>
+                    </nav>
                 </div>
             );
         };
