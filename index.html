@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMKN Pasirian - E-Course Matematika</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel untuk JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Import Map untuk React & Icons (Updated for Stability) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react,react-dom"
+      }
+    }
+    </script>
+    
+    <style>
+        /* Custom Scrollbar Hide */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Smooth Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-slate-800">
+    
+    <!-- Container Aplikasi -->
+    <div id="root" class="min-h-screen flex items-center justify-center">
+        <div class="text-center p-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <h2 class="text-xl font-bold text-slate-700">Memuat Aplikasi SMKN Pasirian...</h2>
+            <p class="text-slate-500 text-sm mt-2">Pastikan koneksi internet Anda lancar.</p>
+        </div>
+    </div>
+
+    <!-- Error Handler Script -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            document.getElementById('root').innerHTML = `
+                <div class="p-8 max-w-md mx-auto bg-white rounded-xl shadow-lg mt-10 text-center border-l-4 border-red-500">
+                    <h3 class="text-red-600 font-bold text-lg mb-2">Terjadi Kesalahan</h3>
+                    <p class="text-slate-600 mb-4">Aplikasi gagal dimuat. Ini biasanya karena masalah koneksi ke server library (CDN) atau konfigurasi browser.</p>
+                    <div class="bg-slate-100 p-3 rounded text-left text-xs font-mono overflow-auto mb-4 text-slate-700">
+                        ${message}
+                    </div>
+                    <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Muat Ulang Halaman</button>
+                </div>
+            `;
+        };
+    </script>
+
+    <!-- React Application Code -->
+    <!-- FIX: Removed 'env' preset to prevent CommonJS 'require' transformation issues in browser -->
+    <script type="text/babel" data-type="module" data-presets="react">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            BookOpen, Trophy, Flame, ChevronRight, Wrench, 
+            Monitor, Play, HelpCircle, CheckCircle, ArrowLeft, 
+            MoreHorizontal, PenTool, Layout, Lock, GraduationCap 
+        } from 'lucide-react';
+
+        const App = () => {
+            // State Management
+            const [view, setView] = useState('onboarding'); // onboarding, dashboard, lesson
+            const [user, setUser] = useState({ name: '', major: '' });
+            const [activeLessonId, setActiveLessonId] = useState(1); // 1 or 2
+            const [xp, setXp] = useState(1250);
+            const [streak, setStreak] = useState(5);
+            const [showHint, setShowHint] = useState(0); // 0: none, 1: clue, 2: solution
+            const [activeTab, setActiveTab] = useState('konsep'); // konsep, penerapan, kuis
+
+            // Database Materi Lengkap (Bab 1 & Bab 2)
+            const lessonsDatabase = {
+                1: {
+                    id: 1,
+                    title: "Bilangan Berpangkat",
+                    subtitle: "Eksponen & Notasi Ilmiah",
+                    videoDuration: "04:15",
+                    generalExplanation: "Eksponen adalah cara penulisan ringkas untuk perkalian berulang. a^n artinya mengalikan bilangan 'a' sebanyak 'n' kali.",
+                    contextualContent: {
+                        "TKJ": {
+                            icon: <Monitor className="w-5 h-5" />,
+                            title: "Addressing & Binary",
+                            desc: "Dalam jaringan (Subnetting), jumlah host dihitung dengan rumus 2ⁿ - 2. Kapasitas bandwidth juga menggunakan basis eksponen.",
+                            example: "IP Address IPv4 = 32 bit (2³² kemungkinan)"
+                        },
+                        "RPL": {
+                            icon: <Monitor className="w-5 h-5" />,
+                            title: "Kompleksitas & Memori",
+                            desc: "Programmer menggunakan eksponen untuk menghitung kompleksitas algoritma (Big-O) dan alokasi memori tipe data.",
+                            example: "Tipe data Integer 32-bit = Range -2³¹ s.d 2³¹-1"
+                        },
+                        "DPIB": {
+                            icon: <PenTool className="w-5 h-5" />,
+                            title: "Skala & Volume",
+                            desc: "Dalam AutoCAD/Revit, konversi satuan luas dan volume menggunakan eksponen pangkat 2 (luas) dan 3 (volume).",
+                            example: "1 m³ (beton) = 10⁶ cm³. Bukan 100!"
+                        }
+                    },
+                    quiz: {
+                        question: "Sederhanakan bentuk berikut: 2³ × 2⁴ = ...",
+                        options: ["2^7", "2^12", "4^7", "4^12"],
+                        correct: "2^7",
+                        correctFeedback: "Benar! (3+4 = 7)",
+                        hint1: "Jika bilangan pokoknya sama (sama-sama 2), pangkatnya cukup dijumlahkan.",
+                        hint2: "2⁽³⁺⁴⁾ = 2⁷."
+                    }
+                },
+                2: {
+                    id: 2,
+                    title: "SPLDV",
+                    subtitle: "Persamaan Linear Dua Variabel",
+                    videoDuration: "06:30",
+                    generalExplanation: "SPLDV adalah sistem persamaan matematika yang terdiri atas dua persamaan linear (garis lurus) yang memiliki dua variabel, biasanya x dan y. Tujuannya mencari titik temu.",
+                    contextualContent: {
+                        "TKJ": {
+                            icon: <Monitor className="w-5 h-5" />,
+                            title: "Manajemen Bandwidth",
+                            desc: "Menentukan batas download/upload user. Jika Total Bandwidth 100Mbps dibagi untuk User Premium (x) dan Regular (y).",
+                            example: "3x + 2y = 100 Mbps (Persamaan 1)"
+                        },
+                        "RPL": {
+                            icon: <Monitor className="w-5 h-5" />,
+                            title: "Logika Variabel",
+                            desc: "Dalam coding, kita sering mencari nilai variabel yang memenuhi dua kondisi (Constraint Programming).",
+                            example: "if (a + b == 10 && a - b == 2) { return a; }"
+                        },
+                        "DPIB": {
+                            icon: <PenTool className="w-5 h-5" />,
+                            title: "Keseimbangan Gaya",
+                            desc: "Menghitung reaksi tumpuan jembatan. Sigma Gaya Vertikal = 0 dan Sigma Momen = 0 menghasilkan dua persamaan linear.",
+                            example: "Ra + Rb = 50kN (Beban Total)"
+                        }
+                    },
+                    quiz: {
+                        question: "Himpunan penyelesaian dari x + y = 5 dan x - y = 1 adalah...",
+                        options: ["{3, 2}", "{2, 3}", "{4, 1}", "{5, 0}"],
+                        correct: "{3, 2}",
+                        correctFeedback: "Tepat! 3+2=5 dan 3-2=1",
+                        hint1: "Gunakan metode eliminasi. Jumlahkan kedua persamaan: (x+y) + (x-y) = 5+1.",
+                        hint2: "2x = 6, maka x = 3. Lalu substitusi x ke salah satu persamaan."
+                    }
+                }
+            };
+
+            // --- Components ---
+
+            const Onboarding = () => (
+                <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-900 text-white space-y-8 animate-in w-full">
+                    <div className="text-center space-y-2">
+                        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/50 mb-4">
+                            <BookOpen className="w-8 h-8 text-white" />
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight">SMKN PASIRIAN</h1>
+                        <div className="bg-slate-800 px-3 py-1.5 rounded-full inline-block border border-slate-700">
+                            <p className="text-slate-300 text-xs font-medium">Guru: Feri Dwi Hermawan, S.Pd.</p>
+                        </div>
+                        <p className="text-slate-400 text-sm mt-2">Platform Belajar Matematika Adaptif</p>
+                    </div>
+
+                    <div className="w-full max-w-xs space-y-4">
+                        <div>
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Nama Siswa</label>
+                            <input 
+                                type="text" 
+                                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
+                                placeholder="Ketik namamu..."
+                                value={user.name}
+                                onChange={(e) => setUser({...user, name: e.target.value})}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Pilih Jurusan</label>
+                            <div className="grid grid-cols-1 gap-2 mt-1">
+                                {["TKJ", "RPL", "DPIB"].map((major) => (
+                                    <button
+                                        key={major}
+                                        onClick={() => setUser({...user, major: major})}
+                                        className={`flex items-center p-3 rounded-xl border transition-all ${user.major === major ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
+                                    >
+                                        {major === "TKJ" && <Monitor className="w-4 h-4 mr-3" />}
+                                        {major === "RPL" && <Monitor className="w-4 h-4 mr-3" />}
+                                        {major === "DPIB" && <PenTool className="w-4 h-4 mr-3" />}
+                                        <span className="text-sm font-medium">{major}</span>
+                                        {user.major === major && <CheckCircle className="w-4 h-4 ml-auto" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button 
+                        disabled={!user.name || !user.major}
+                        onClick={() => setView('dashboard')}
+                        className="w-full max-w-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
+                    >
+                        Mulai E-Course
+                    </button>
+                </div>
+            );
+
+            const Dashboard = () => (
+                <div className="h-full bg-slate-50 flex flex-col overflow-hidden animate-in w-full">
+                    {/* Header */}
+                    <div className="bg-white px-6 pt-10 pb-6 rounded-b-3xl shadow-sm z-10">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Guru: Feri Dwi Hermawan, S.Pd.</p>
+                                <h2 className="text-2xl font-bold text-slate-800 mt-1">{user.name || "Siswa"}</h2>
+                                <div className="inline-flex items-center mt-2 bg-blue-50 px-3 py-1 rounded-full text-xs font-medium text-blue-600 border border-blue-100">
+                                    {user.major === "TKJ" && <Monitor className="w-3 h-3 mr-1.5" />}
+                                    {user.major === "RPL" && <Monitor className="w-3 h-3 mr-1.5" />}
+                                    {user.major === "DPIB" && <PenTool className="w-3 h-3 mr-1.5" />}
+                                    Jurusan {user.major}
+                                </div>
+                            </div>
+                            <div className="w-12 h-12 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md">
+                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="avatar" />
+                            </div>
+                        </div>
+
+                        {/* Gamification Stats */}
+                        <div className="flex space-x-3">
+                            <div className="flex-1 bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-between shadow-lg shadow-slate-200">
+                                <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 bg-yellow-500/20 rounded-lg">
+                                        <Trophy className="w-4 h-4 text-yellow-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Total XP</p>
+                                        <p className="text-sm font-bold">{xp}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex-1 bg-white border border-slate-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+                                <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 bg-orange-100 rounded-lg">
+                                        <Flame className="w-4 h-4 text-orange-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Streak</p>
+                                        <p className="text-sm font-bold text-slate-800">{streak} Hari</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content Scroll */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        {/* Course List */}
+                        <section>
+                            <div className="flex justify-between items-end mb-3">
+                                <h3 className="font-bold text-slate-800">Daftar Bab</h3>
+                                <button className="text-xs text-blue-600 font-semibold">Semester 1</button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {/* Card Bab 1 */}
+                                <div 
+                                    onClick={() => { setActiveLessonId(1); setView('lesson'); setActiveTab('konsep'); }}
+                                    className="group relative h-36 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white overflow-hidden shadow-lg shadow-blue-200 cursor-pointer transition-transform active:scale-95"
+                                >
+                                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                                        <BookOpen className="w-20 h-20 transform rotate-12" />
+                                    </div>
+                                    <div className="relative z-10 flex flex-col h-full justify-between">
+                                        <div>
+                                            <span className="bg-white/20 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide">Bab 1</span>
+                                            <h4 className="text-lg font-bold mt-1">Bilangan Berpangkat</h4>
+                                            <p className="text-blue-100 text-xs">Eksponen & Akar</p>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <div className="flex-1 h-1 bg-black/20 rounded-full">
+                                                <div className="h-full bg-yellow-400 w-full rounded-full"></div>
+                                            </div>
+                                            <CheckCircle className="w-4 h-4 text-yellow-400" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card Bab 2 */}
+                                <div 
+                                    onClick={() => { setActiveLessonId(2); setView('lesson'); setActiveTab('konsep'); }}
+                                    className="group relative h-36 bg-white border border-slate-200 rounded-2xl p-5 overflow-hidden shadow-sm cursor-pointer transition-all hover:border-blue-300 hover:shadow-md active:scale-95"
+                                >
+                                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                                        <Layout className="w-20 h-20 transform -rotate-12 text-slate-800" />
+                                    </div>
+                                    <div className="relative z-10 flex flex-col h-full justify-between">
+                                        <div>
+                                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide">Bab 2</span>
+                                            <h4 className="text-lg font-bold mt-1 text-slate-800">Sistem Persamaan (SPLDV)</h4>
+                                            <p className="text-slate-500 text-xs">Metode Gabungan & Grafik</p>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <div className="flex-1 h-1 bg-slate-100 rounded-full">
+                                                <div className="h-full bg-blue-500 w-1/4 rounded-full"></div>
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-400">25%</span>
+                                        </div>
+                                    </div>
+                                    {/* Play Button Overlay */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
+                                        <div className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center scale-0 group-hover:scale-100 transition-transform">
+                                            <Play className="w-4 h-4 ml-0.5 text-blue-600 fill-blue-600" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card Bab 3 Locked */}
+                                <div className="relative h-20 bg-slate-100 rounded-xl p-4 flex items-center justify-between opacity-70">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center">
+                                            <Lock className="w-5 h-5 text-slate-400" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-500 text-sm">Barisan & Deret</h4>
+                                            <p className="text-xs text-slate-400">Terkunci</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            );
+
+            const Lesson = () => {
+                const [contextView, setContextView] = useState(user.major);
+                const currentLesson = lessonsDatabase[activeLessonId];
+                
+                // Safety check
+                if (!currentLesson) return <div>Materi tidak ditemukan</div>;
+
+                // Fallback content logic
+                const content = currentLesson.contextualContent[contextView] || currentLesson.contextualContent["TKJ"];
+                const [quizAnswer, setQuizAnswer] = useState(null);
+
+                return (
+                    <div className="h-full flex flex-col bg-white animate-in w-full">
+                        {/* Nav */}
+                        <div className="px-4 py-4 flex items-center border-b border-slate-100">
+                            <button onClick={() => setView('dashboard')} className="p-2 hover:bg-slate-50 rounded-full">
+                                <ArrowLeft className="w-5 h-5 text-slate-600" />
+                            </button>
+                            <div className="flex-1 text-center">
+                                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Bab {currentLesson.id}: {currentLesson.title}</h2>
+                            </div>
+                            <button className="p-2 hover:bg-slate-50 rounded-full">
+                                <MoreHorizontal className="w-5 h-5 text-slate-600" />
+                            </button>
+                        </div>
+
+                        {/* Video Area (Mockup) */}
+                        <div className="w-full aspect-video bg-slate-900 relative flex items-center justify-center group">
+                            <div className="text-center space-y-2">
+                                <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-full flex items-center justify-center mx-auto cursor-pointer hover:scale-110 transition-transform">
+                                    <Play className="w-6 h-6 ml-1 text-white fill-white" />
+                                </div>
+                                <p className="text-slate-400 text-xs font-medium">Video Materi ({currentLesson.videoDuration})</p>
+                                <p className="text-slate-500 text-[10px]">Oleh: Feri Dwi Hermawan, S.Pd.</p>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-800">
+                                <div className="h-full bg-red-600 w-1/4 relative">
+                                    <div className="absolute right-0 -top-1 w-3 h-3 bg-red-600 rounded-full shadow"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex border-b border-slate-100">
+                            <button 
+                                onClick={() => setActiveTab('konsep')}
+                                className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'konsep' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
+                            >
+                                Konsep
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('penerapan')}
+                                className={`flex-1 py-3 text-sm font-semibold transition-colors flex justify-center items-center space-x-1 ${activeTab === 'penerapan' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
+                            >
+                                <span>Penerapan</span>
+                                <div className="bg-orange-100 text-orange-600 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Wajib</div>
+                            </button>
+                            <button 
+                                onClick={() => { setActiveTab('kuis'); setShowHint(0); setQuizAnswer(null); }}
+                                className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'kuis' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
+                            >
+                                Kuis
+                            </button>
+                        </div>
+
+                        {/* Content Body */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <h1 className="text-xl font-bold text-slate-800 mb-1">{currentLesson.title}</h1>
+                            <p className="text-slate-500 text-sm mb-6">{currentLesson.subtitle}</p>
+
+                            {activeTab === 'konsep' && (
+                                <div className="space-y-4 animate-in">
+                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-900 text-sm leading-relaxed">
+                                        {currentLesson.generalExplanation}
+                                    </div>
+                                    <div className="prose prose-sm text-slate-600 space-y-2">
+                                        <p>Poin Kunci:</p>
+                                        {activeLessonId === 1 ? (
+                                            <ul className="list-disc pl-5 space-y-1">
+                                                <li><strong>Perkalian:</strong> aᵐ x aⁿ = aᵐ⁺ⁿ</li>
+                                                <li><strong>Pembagian:</strong> aᵐ / aⁿ = aᵐ⁻ⁿ</li>
+                                                <li><strong>Pangkat dipangkatkan:</strong> (aᵐ)ⁿ = aᵐ⁻ⁿ</li>
+                                            </ul>
+                                        ) : (
+                                            <ul className="list-disc pl-5 space-y-1">
+                                                <li><strong>Variabel:</strong> Nilai yang belum diketahui (x, y).</li>
+                                                <li><strong>Metode Eliminasi:</strong> Menghilangkan salah satu variabel.</li>
+                                                <li><strong>Metode Substitusi:</strong> Mengganti variabel dengan persamaan lain.</li>
+                                            </ul>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'penerapan' && (
+                                <div className="space-y-4 animate-in">
+                                    <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                                        {["TKJ", "RPL", "DPIB"].map((m) => (
+                                            <button
+                                                key={m}
+                                                onClick={() => setContextView(m)}
+                                                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${contextView === m ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200'}`}
+                                            >
+                                                {m}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                                        <div className="flex items-center space-x-3 mb-4">
+                                            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                {content.icon}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 text-sm">{content.title}</h4>
+                                                <p className="text-xs text-slate-500">Studi Kasus: {contextView}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                                            {content.desc}
+                                        </p>
+                                        <div className="bg-slate-900 text-slate-300 p-3 rounded-lg font-mono text-xs">
+                                            {content.example}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-xl flex space-x-3">
+                                        <HelpCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                                        <p className="text-xs text-yellow-800">
+                                            <strong>Relevansi Profesi:</strong> Materi ini bukan sekadar teori, tapi logika dasar yang dipakai teknisi {contextView} setiap hari.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'kuis' && (
+                                <div className="space-y-4 animate-in">
+                                    <div className="bg-white border-2 border-slate-100 rounded-xl p-5">
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Soal Latihan</span>
+                                        <p className="font-medium text-slate-800 mt-2 mb-4">
+                                            {currentLesson.quiz.question}
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {currentLesson.quiz.options.map((ans) => (
+                                                <button 
+                                                    key={ans} 
+                                                    onClick={() => setQuizAnswer(ans)}
+                                                    className={`py-3 rounded-lg border font-bold transition-all ${quizAnswer === ans ? (ans === currentLesson.quiz.correct ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-50 border-red-200 text-red-600') : 'border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-200'}`}
+                                                >
+                                                    {ans}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {quizAnswer && (
+                                            <div className={`mt-3 text-center text-sm font-bold ${quizAnswer === currentLesson.quiz.correct ? "text-green-600" : "text-red-500"}`}>
+                                                {quizAnswer === currentLesson.quiz.correct ? currentLesson.quiz.correctFeedback : "Kurang tepat, coba lagi!"}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <button 
+                                            onClick={() => setShowHint(prev => prev < 2 ? prev + 1 : prev)}
+                                            className="flex items-center justify-center space-x-2 w-full py-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                                        >
+                                            <HelpCircle className="w-4 h-4" />
+                                            <span>{showHint === 0 ? "Buntu? Minta Bantuan" : showHint === 1 ? "Buka Jawaban Lengkap" : "Bantuan Maksimal Tercapai"}</span>
+                                        </button>
+
+                                        {showHint >= 1 && (
+                                            <div className="mt-3 bg-indigo-50 text-indigo-800 p-3 rounded-lg text-sm animate-in">
+                                                <strong>Hint 1:</strong> {currentLesson.quiz.hint1}
+                                            </div>
+                                        )}
+                                        {showHint >= 2 && (
+                                            <div className="mt-2 bg-green-50 text-green-800 p-3 rounded-lg text-sm animate-in">
+                                                <strong>Jawaban:</strong> {currentLesson.quiz.hint2}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 border-t border-slate-100 bg-white">
+                            <button className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg shadow-slate-300 active:scale-95 transition-transform flex items-center justify-center space-x-2">
+                                <span>Selesai & Lanjut</span>
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="flex items-center justify-center min-h-screen font-sans">
+                    <div className="w-full max-w-md bg-white min-h-screen shadow-2xl relative">
+                        {view === 'onboarding' && <Onboarding />}
+                        {view === 'dashboard' && <Dashboard />}
+                        {view === 'lesson' && <Lesson />}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
